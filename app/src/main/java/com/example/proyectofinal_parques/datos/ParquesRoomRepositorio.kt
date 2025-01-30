@@ -1,23 +1,23 @@
 package com.example.proyectofinal_parques.datos
 
-import com.example.proyectofinal_parques.conexion.ParquesServicioApi
+import androidx.compose.foundation.layout.PaddingValues
 import com.example.proyectofinal_parques.dao.ParqueDao
 import com.example.proyectofinal_parques.modelo.ParquesRoom
 
 interface ParquesRoomRepositorio{
-    suspend fun obtenerParque(id: Int): ParquesRoom
+    suspend fun obtenerParque(id: PaddingValues): ParquesRoom
     suspend fun obtenerTodosParques(): List<ParquesRoom>
     suspend fun insertarParque(parquesRoom: ParquesRoom)
     suspend fun actualizarParques(parquesRoom: ParquesRoom)
-    suspend fun eliminarParques(parquesRoom: ParquesRoom)
+    suspend fun eliminarParques(id: String)
 }
 
 class ConexionParquesRoomRepositorio(
     private val parqueDao: ParqueDao
 ):ParquesRoomRepositorio{
-    override suspend fun obtenerParque(id: Int): ParquesRoom = parqueDao.obtenerParque(id)
+    override suspend fun obtenerParque(id: PaddingValues): ParquesRoom = parqueDao.obtenerParque(id)
     override suspend fun obtenerTodosParques(): List<ParquesRoom> = parqueDao.obtenerTodosParques()
     override suspend fun insertarParque(parquesRoom: ParquesRoom) = parqueDao.insertarParque(parquesRoom)
     override suspend fun actualizarParques(parquesRoom: ParquesRoom) = parqueDao.actualizarParque(parquesRoom)
-    override suspend fun eliminarParques(parquesRoom: ParquesRoom) = parqueDao.eliminarParque(parquesRoom)
+    override suspend fun eliminarParques(id: String) = parqueDao.eliminarParque(id)
 }

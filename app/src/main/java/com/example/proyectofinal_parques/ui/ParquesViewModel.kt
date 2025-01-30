@@ -1,5 +1,6 @@
 package com.example.proyectofinal_parques.ui
 
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -13,10 +14,12 @@ import com.example.proyectofinal_parques.ParquesAplicacion
 import com.example.proyectofinal_parques.datos.ParquesRoomRepositorio
 import com.example.proyectofinal_parques.modelo.ParquesRoom
 import kotlinx.coroutines.launch
+import java.io.IOException
 
 sealed interface ParqueUIState {
     data class ObtenerExitoTodos(val listaParques: List<ParquesRoom>) : ParqueUIState
     data class ObtenerExito(val parque: ParquesRoom) : ParqueUIState
+    data class EliminarExito(val parque: String) : ParqueUIState
 
     object CrearExito : ParqueUIState
     object ActualizarExito : ParqueUIState
@@ -47,7 +50,7 @@ sealed interface ParqueUIState {
         }
 
         // Obtiene un producto por su ID
-        fun obtenerParque(id: Int) {
+        fun obtenerParque(id: PaddingValues) {
             viewModelScope.launch {
                 parqueUIState = try {
                     val parque = parquesRoomRepositorio.obtenerParque(id)
@@ -83,14 +86,28 @@ sealed interface ParqueUIState {
             }
         }
 
+        fun eliminarParque(id: String) {
+            viewModelScope.launch {
+                parqueUIState = ParqueUIState.Cargando
+                parqueUIState = try {
+                    parquesRoomRepositorio.eliminarParques(id)
+                    ParqueUIState.EliminarExito(id)
+                } catch (e: IOException) {
+                    ParqueUIState.Error
+                }
+            }
+        }
+
         // Factory para crear una instancia del ViewModel con su dependencia del repositorio
         companion object {
             val Factory: ViewModelProvider.Factory = viewModelFactory {
                 initializer {
                     val aplicacion = (this[APPLICATION_KEY] as ParquesAplicacion)
-                    val parquesRoomRepositorio = aplicacion.contenedor.parqueRoomRepositorio
+                    val parquesRoomRepositorio = aplicacion.contenedor.parquesRoomRepositorio
                     ParquesViewModel(parquesRoomRepositorio = parquesRoomRepositorio)
                 }
             }
         }
+
+        //PARTE DEDICADA PARA
     }
