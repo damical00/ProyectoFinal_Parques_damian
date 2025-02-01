@@ -1,113 +1,132 @@
 package com.example.proyectofinal_parques.ui
 
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory.Companion.APPLICATION_KEY
 import androidx.lifecycle.viewModelScope
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
-import com.example.proyectofinal_parques.ParquesAplicacion
 import com.example.proyectofinal_parques.datos.ParquesRoomRepositorio
+import com.example.proyectofinal_parques.datos.ParquesJSONRepositorio
+import com.example.proyectofinal_parques.modelo.ParquesJSON
 import com.example.proyectofinal_parques.modelo.ParquesRoom
 import kotlinx.coroutines.launch
 import java.io.IOException
 
-sealed interface ParqueUIState {
-    data class ObtenerExitoTodos(val listaParques: List<ParquesRoom>) : ParqueUIState
-    data class ObtenerExito(val parque: ParquesRoom) : ParqueUIState
-    data class EliminarExito(val parque: String) : ParqueUIState
+sealed class ParqueUIState {
+    // Estado cuando obtienes correctamente la lista de parques
+    data class ObtenerExitoTodos(val listaParques: List<ParquesRoom>) : ParqueUIState()
 
-    object CrearExito : ParqueUIState
-    object ActualizarExito : ParqueUIState
-    object Error : ParqueUIState
-    object Cargando : ParqueUIState
+    // Estado cuando obtienes un parque individual
+    data class ObtenerExito(val parque: ParquesRoom) : ParqueUIState()
+
+    // Estado cuando un parque fue eliminado correctamente
+    data class EliminarExito(val parqueId: String) : ParqueUIState()
+
+    // Estado cuando se creó un parque exitosamente
+    object CrearExito : ParqueUIState()
+
+    // Estado cuando un parque fue actualizado exitosamente
+    object ActualizarExito : ParqueUIState()
+
+    // Estado cuando ocurre un error
+    object Error : ParqueUIState()
+
+    // Estado cuando la operación está en curso (cargando)
+    object Cargando : ParqueUIState()
 }
-    class ParquesViewModel (private val parquesRoomRepositorio: ParquesRoomRepositorio) : ViewModel(){
-        var parqueUIState: ParqueUIState by mutableStateOf(ParqueUIState.Cargando)
-            private set
 
-        var parquePulsado: ParquesRoom by mutableStateOf(ParquesRoom(0,"",""))
-            private set
 
-        init {
-            obtenerTodosParques()
-        }
+class ParquesViewModel(private val parquesRoomRepositorio: ParquesRoomRepositorio) : ViewModel() {
+    var parqueUIState: ParqueUIState by mutableStateOf(ParqueUIState.Cargando)
+        private set
 
-        // Obtiene la lista de parques desde el repositorio
-        fun obtenerTodosParques() {
-            viewModelScope.launch {
-                parqueUIState = try {
-                    val lista = parquesRoomRepositorio.obtenerTodosParques()
-                    ParqueUIState.ObtenerExitoTodos(lista)
-                } catch (e: Exception) {
-                    ParqueUIState.Error // Manejo de error en la obtención de productos
-                }
-            }
-        }
+    var parquePulsado: ParquesJSON by mutableStateOf(ParquesJSON("","","",""))
+        private set
 
-        // Obtiene un producto por su ID
-        fun obtenerParque(id: PaddingValues) {
-            viewModelScope.launch {
-                parqueUIState = try {
-                    val parque = parquesRoomRepositorio.obtenerParque(id)
-                    parquePulsado = parque // Almacena el producto seleccionado
-                    ParqueUIState.ObtenerExito(parque)
-                } catch (e: Exception) {
-                    ParqueUIState.Error // Manejo de error
-                }
-            }
-        }
-
-        // Inserta un nuevo parque en el repositorio
-        fun insertarParque(parque: ParquesRoom){
-            viewModelScope.launch {
-                parqueUIState = try {
-                    parquesRoomRepositorio.insertarParque(parque)
-                    ParqueUIState.CrearExito
-                }catch (e: Exception){
-                    ParqueUIState.Error
-                }
-            }
-        }
-
-        // Actualiza un producto existente en el repositorio
-        fun actualizarProducto(parque: ParquesRoom) {
-            viewModelScope.launch {
-                parqueUIState = try {
-                    parquesRoomRepositorio.actualizarParques(parque)
-                    ParqueUIState.ActualizarExito // Indica que la actualización fue exitosa
-                } catch (e: Exception) {
-                    ParqueUIState.Error // Manejo de error
-                }
-            }
-        }
-
-        fun eliminarParque(id: String) {
-            viewModelScope.launch {
-                parqueUIState = ParqueUIState.Cargando
-                parqueUIState = try {
-                    parquesRoomRepositorio.eliminarParques(id)
-                    ParqueUIState.EliminarExito(id)
-                } catch (e: IOException) {
-                    ParqueUIState.Error
-                }
-            }
-        }
-
-        // Factory para crear una instancia del ViewModel con su dependencia del repositorio
-        companion object {
-            val Factory: ViewModelProvider.Factory = viewModelFactory {
-                initializer {
-                    val aplicacion = (this[APPLICATION_KEY] as ParquesAplicacion)
-                    val parquesRoomRepositorio = aplicacion.contenedor.parquesRoomRepositorio
-                    ParquesViewModel(parquesRoomRepositorio = parquesRoomRepositorio)
-                }
-            }
-        }
-
-        //PARTE DEDICADA PARA
+    init {
+        obtenerTodosParques()
     }
+
+    // Método para obtener la lista de parques desde el repositorio
+    fun obtenerTodosParques() {
+        viewModelScope.launch {
+            parqueUIState = try {
+                val lista = parquesRoomRepositorio.obtenerTodosParques()
+                ParqueUIState.ObtenerExitoTodos(lista)  // Pasamos la lista de parques
+            } catch (e: Exception) {
+                ParqueUIState.Error  // Si hay error, asignamos el estado Error
+            }
+        }
+    }
+
+    // Método para obtener un parque por su ID
+    fun obtenerParque(id: Int) {
+        viewModelScope.launch {
+            parqueUIState = try {
+                val parque = parquesRoomRepositorio.obtenerParque(id)
+                parquePulsado = convertirRoomAParquesJSON(parque)  // Convertimos de Room a JSON
+                ParqueUIState.ObtenerExito(parque)  // Pasamos el parque individual
+            } catch (e: Exception) {
+                ParqueUIState.Error  // Si hay error, asignamos el estado Error
+            }
+        }
+    }
+
+    // Método para insertar un parque en la base de datos
+    fun insertarParque(parque: ParquesJSON) {
+        viewModelScope.launch {
+            parqueUIState = try {
+                val parqueRoom = convertirJsonAParquesRoom(parque)  // Convertimos JSON a Room
+                parquesRoomRepositorio.insertarParque(parqueRoom)  // Insertamos el parque
+                ParqueUIState.CrearExito  // Estado de éxito
+            } catch (e: Exception) {
+                ParqueUIState.Error  // Si hay error, asignamos el estado Error
+            }
+        }
+    }
+
+    // Método para actualizar un parque en la base de datos
+    fun actualizarParque(parque: ParquesJSON) {
+        viewModelScope.launch {
+            parqueUIState = try {
+                val parqueRoom = convertirJsonAParquesRoom(parque)  // Convertimos JSON a Room
+                parquesRoomRepositorio.actualizarParques(parqueRoom)  // Actualizamos el parque
+                ParqueUIState.ActualizarExito  // Estado de éxito
+            } catch (e: Exception) {
+                ParqueUIState.Error  // Si hay error, asignamos el estado Error
+            }
+        }
+    }
+
+    // Método para eliminar un parque de la base de datos
+    fun eliminarParque(id: Int) {
+        viewModelScope.launch {
+            parqueUIState = ParqueUIState.Cargando  // Estado de carga mientras se procesa
+            try {
+                parquesRoomRepositorio.eliminarParques(id)  // Eliminamos el parque
+                parqueUIState = ParqueUIState.EliminarExito(id.toString())  // Estado de éxito con el id
+            } catch (e: IOException) {
+                parqueUIState = ParqueUIState.Error  // Si hay error, asignamos el estado Error
+            }
+        }
+    }
+
+    // Método para convertir de ParquesRoom a ParquesJSON
+    private fun convertirRoomAParquesJSON(parquesRoom: ParquesRoom): ParquesJSON {
+        return ParquesJSON(
+            id = parquesRoom.id.toString(),  // Convertimos el id de Int a String
+            nombre = parquesRoom.nombre,
+            extension = parquesRoom.extension,
+            especies = ""  // O lo que consideres necesario
+        )
+    }
+
+    // Método para convertir de ParquesJSON a ParquesRoom
+    private fun convertirJsonAParquesRoom(parquesJSON: ParquesJSON): ParquesRoom {
+        return ParquesRoom(
+            id = parquesJSON.id.toInt(),  // Convertimos el id de String a Int
+            nombre = parquesJSON.nombre,
+            extension = parquesJSON.extension
+        )
+    }
+}

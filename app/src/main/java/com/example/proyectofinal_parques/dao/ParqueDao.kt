@@ -24,7 +24,7 @@ interface ParqueDao {
     suspend fun actualizarParque(parquesRoom: ParquesRoom)
 
     @Delete
-    suspend fun eliminarParque(parquesRoom: String)
+    suspend fun eliminarParque(parquesRoom: Int)
 
 }
 

@@ -4,4 +4,8 @@
     <string name="insertar_parque">Insertar Parque</string>
     <string name="actualizar">Actualizar</string>
     <string name="atras">Atrás</string>
+    <string name="listado_json">Listado JSON</string>
+    <string name="listado_room">Listado Room</string>
+    <string name="insertar_room">Insertar Room</string>
+    <string name="insertar_json">Insertar Json</string>
 </resources>
