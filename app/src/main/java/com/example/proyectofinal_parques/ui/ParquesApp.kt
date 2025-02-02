@@ -56,7 +56,7 @@ fun AppBottomBar(
     navController: NavHostController,
     modifier: Modifier = Modifier
 ) {
-    val currentScreen = navController.currentBackStackEntry?.destination?.route
+    val currentScreen = navController.currentBackStackEntry?.destination?.route ?: ""
 
     BottomAppBar(
         modifier = modifier

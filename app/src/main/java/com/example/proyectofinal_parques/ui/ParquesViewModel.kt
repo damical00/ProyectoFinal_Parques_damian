@@ -1,12 +1,12 @@
 package com.example.proyectofinal_parques.ui
 
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.proyectofinal_parques.datos.ParquesRoomRepositorio
-import com.example.proyectofinal_parques.datos.ParquesJSONRepositorio
 import com.example.proyectofinal_parques.modelo.ParquesJSON
 import com.example.proyectofinal_parques.modelo.ParquesRoom
 import kotlinx.coroutines.launch
@@ -40,7 +40,7 @@ class ParquesViewModel(private val parquesRoomRepositorio: ParquesRoomRepositori
     var parqueUIState: ParqueUIState by mutableStateOf(ParqueUIState.Cargando)
         private set
 
-    var parquePulsado: ParquesJSON by mutableStateOf(ParquesJSON("","","",""))
+    var parquePulsado = mutableStateOf(ParquesJSON("", "", "", ""))
         private set
 
     init {
@@ -64,7 +64,7 @@ class ParquesViewModel(private val parquesRoomRepositorio: ParquesRoomRepositori
         viewModelScope.launch {
             parqueUIState = try {
                 val parque = parquesRoomRepositorio.obtenerParque(id)
-                parquePulsado = convertirRoomAParquesJSON(parque)  // Convertimos de Room a JSON
+                parquePulsado = mutableStateOf(convertirRoomAParquesJSON(parque)) // Convertimos de Room a JSON
                 ParqueUIState.ObtenerExito(parque)  // Pasamos el parque individual
             } catch (e: Exception) {
                 ParqueUIState.Error  // Si hay error, asignamos el estado Error
@@ -76,11 +76,12 @@ class ParquesViewModel(private val parquesRoomRepositorio: ParquesRoomRepositori
     fun insertarParque(parque: ParquesJSON) {
         viewModelScope.launch {
             parqueUIState = try {
-                val parqueRoom = convertirJsonAParquesRoom(parque)  // Convertimos JSON a Room
-                parquesRoomRepositorio.insertarParque(parqueRoom)  // Insertamos el parque
-                ParqueUIState.CrearExito  // Estado de éxito
+                val parqueRoom = convertirJsonAParquesRoom(parque)
+                parquesRoomRepositorio.insertarParque(parqueRoom)
+                obtenerTodosParques()  // Actualizar lista después de insertar
+                ParqueUIState.CrearExito
             } catch (e: Exception) {
-                ParqueUIState.Error  // Si hay error, asignamos el estado Error
+                ParqueUIState.Error
             }
         }
     }
@@ -89,11 +90,12 @@ class ParquesViewModel(private val parquesRoomRepositorio: ParquesRoomRepositori
     fun actualizarParque(parque: ParquesJSON) {
         viewModelScope.launch {
             parqueUIState = try {
-                val parqueRoom = convertirJsonAParquesRoom(parque)  // Convertimos JSON a Room
-                parquesRoomRepositorio.actualizarParques(parqueRoom)  // Actualizamos el parque
-                ParqueUIState.ActualizarExito  // Estado de éxito
+                val parqueRoom = convertirJsonAParquesRoom(parque)
+                parquesRoomRepositorio.actualizarParques(parqueRoom)
+                obtenerTodosParques()  // Actualizar lista después de insertar
+                ParqueUIState.ActualizarExito
             } catch (e: Exception) {
-                ParqueUIState.Error  // Si hay error, asignamos el estado Error
+                ParqueUIState.Error
             }
         }
     }
@@ -101,15 +103,19 @@ class ParquesViewModel(private val parquesRoomRepositorio: ParquesRoomRepositori
     // Método para eliminar un parque de la base de datos
     fun eliminarParque(id: Int) {
         viewModelScope.launch {
-            parqueUIState = ParqueUIState.Cargando  // Estado de carga mientras se procesa
+            parqueUIState = ParqueUIState.Cargando
             try {
-                parquesRoomRepositorio.eliminarParques(id)  // Eliminamos el parque
-                parqueUIState = ParqueUIState.EliminarExito(id.toString())  // Estado de éxito con el id
+                val parque = parquesRoomRepositorio.obtenerParque(id)  // Primero obtenemos el objeto
+                parquesRoomRepositorio.eliminarParques(parque)  // Ahora lo eliminamos
+                obtenerTodosParques()
+                parqueUIState = ParqueUIState.EliminarExito(id.toString())
             } catch (e: IOException) {
-                parqueUIState = ParqueUIState.Error  // Si hay error, asignamos el estado Error
+                parqueUIState = ParqueUIState.Error
             }
         }
     }
+
+
 
     // Método para convertir de ParquesRoom a ParquesJSON
     private fun convertirRoomAParquesJSON(parquesRoom: ParquesRoom): ParquesJSON {
