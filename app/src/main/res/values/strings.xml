@@ -8,4 +8,6 @@
     <string name="listado_room">Listado Room</string>
     <string name="insertar_room">Insertar Room</string>
     <string name="insertar_json">Insertar Json</string>
+    <string name="pantalla_json">pantalla_json</string>
+    <string name="pantalla_room">pantalla_room</string>
 </resources>

@@ -13,12 +13,20 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.proyectofinal_parques.R
+import com.example.proyectofinal_parques.ui.Pantallas.PantallaJson
 import com.example.proyectofinal_parques.ui.Pantallas.PantallaRoom
 import com.example.proyectofinal_parques.ui.Pantallas.PantallaInsertarJson
 import com.example.proyectofinal_parques.ui.Pantallas.PantallaInsertarRoom
-import com.example.proyectofinal_parques.ui.Pantallas.PantallaJson
-import androidx.lifecycle.viewmodel.compose.viewModel // <-- Asegúrate de tener esta importación
+
+// Enum class que define las pantallas y sus rutas
+enum class PantallasParque(val route: String) {
+    PantallaJson("pantalla_json"),
+    PantallaRoom("pantalla_room"),
+    InsertarJson("insertar_json"),
+    InsertarRoom("insertar_room")
+}
 
 // Barra superior de la aplicación
 @OptIn(ExperimentalMaterial3Api::class)
@@ -62,13 +70,13 @@ fun AppBottomBar(
         modifier = modifier
     ) {
         IconButton(
-            onClick = { navController.navigate("pantalla_json") }
+            onClick = { navController.navigate(PantallasParque.PantallaJson.route) }
         ) {
             Icon(imageVector = Icons.Default.Add, contentDescription = "Listado JSON")
         }
 
         IconButton(
-            onClick = { navController.navigate("pantalla_room") }
+            onClick = { navController.navigate(PantallasParque.PantallaRoom.route) }
         ) {
             Icon(imageVector = Icons.Default.Add, contentDescription = "Listado Room")
         }
@@ -88,16 +96,16 @@ fun ParquesApps(
             // Detectamos qué pantalla está activa para mostrar el FloatingButton adecuado
             val currentScreen = navController.currentBackStackEntry?.destination?.route
             when (currentScreen) {
-                "pantalla_json" -> {
+                PantallasParque.PantallaJson.route -> {
                     FloatingActionButton(
-                        onClick = { navController.navigate("insertar_json") }
+                        onClick = { navController.navigate(PantallasParque.InsertarJson.route) }
                     ) {
                         Icon(imageVector = Icons.Default.Add, contentDescription = "Insertar JSON")
                     }
                 }
-                "pantalla_room" -> {
+                PantallasParque.PantallaRoom.route -> {
                     FloatingActionButton(
-                        onClick = { navController.navigate("insertar_room") }
+                        onClick = { navController.navigate(PantallasParque.InsertarRoom.route) }
                     ) {
                         Icon(imageVector = Icons.Default.Add, contentDescription = "Insertar Room")
                     }
@@ -107,20 +115,21 @@ fun ParquesApps(
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = "pantalla_json",  // Pantalla inicial
+            startDestination = PantallasParque.PantallaJson.route,  // Pantalla inicial
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable("pantalla_json") {
-                PantallaJson(viewModel = viewModel)  // Pasamos el ViewModel como argumento
+            composable(PantallasParque.PantallaJson.route) {
+                // Usar viewModel() para obtener la instancia del ViewModel
+                PantallaJson(viewModel = viewModel)  // Ahora el ViewModel se obtiene directamente
             }
-            composable("pantalla_room") {
-                PantallaRoom(viewModel = viewModel)  // Lo pasamos a la pantalla
+            composable(PantallasParque.PantallaRoom.route) {
+                PantallaRoom(viewModel = viewModel)
             }
-            composable("insertar_json") {
-                PantallaInsertarJson(viewModel = viewModel)  // Lo pasamos a la pantalla
+            composable(PantallasParque.InsertarJson.route) {
+                PantallaInsertarJson(viewModel = viewModel)
             }
-            composable("insertar_room") {
-                PantallaInsertarRoom(viewModel = viewModel)  // Lo pasamos a la pantalla
+            composable(PantallasParque.InsertarRoom.route) {
+                PantallaInsertarRoom(viewModel = viewModel)
             }
         }
     }

@@ -12,7 +12,7 @@ interface ParquesRoomRepositorio{
 }
 
 class ConexionParquesRoomRepositorio(
-    private val parqueDao: ParqueDao
+    val parqueDao: ParqueDao
 ):ParquesRoomRepositorio{
     override suspend fun obtenerParque(id: Int): ParquesRoom = parqueDao.obtenerParque(id)
     override suspend fun obtenerTodosParques(): List<ParquesRoom> = parqueDao.obtenerTodosParques()

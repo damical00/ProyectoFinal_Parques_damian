@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.example.proyectofinal_parques.ui.ParquesApps
 import com.example.proyectofinal_parques.ui.theme.ProyectoFinal_ParquesTheme
 
 class MainActivity : ComponentActivity() {
@@ -19,7 +20,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             ProyectoFinal_ParquesTheme {
-
+                ParquesApps()
             }
         }
     }
