@@ -25,13 +25,13 @@ import com.example.proyectofinal_parques.ui.ParquesViewModel
 
 @Composable
 fun PantallaJson(
-    viewModel: ParquesViewModel = viewModel()  // Inicializa el ViewModel
+    viewModel: ParquesViewModel = viewModel(),  // Inicializa el ViewModel
+    appUiState: ParqueUIState
 ) {
     // Accede al estado del ViewModel
-    val uiState = viewModel.parqueUIState
 
     // Ahora puedes usar el estado uiState para manejar la UI, como mostrar los parques
-    when (uiState) {
+    when (appUiState) {
         is ParqueUIState.Cargando -> {
             // Mostrar estado de cargando
             CircularProgressIndicator()
@@ -43,7 +43,7 @@ fun PantallaJson(
         is ParqueUIState.ObtenerExitoTodos -> {
             // Aquí puedes acceder a la lista de parques
             LazyColumn {
-                items(uiState.listaParques) { parque ->
+                items(appUiState.listaParques) { parque ->
                     Text(text = parque.nombre)
                 }
             }

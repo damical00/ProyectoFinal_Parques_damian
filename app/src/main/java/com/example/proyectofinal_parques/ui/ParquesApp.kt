@@ -86,9 +86,12 @@ fun AppBottomBar(
 // Componente principal de la aplicación
 @Composable
 fun ParquesApps(
-    viewModel: ParquesViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
+    viewModel: ParquesViewModel = viewModel(factory = ParquesViewModel.Factory),
     navController: NavHostController = rememberNavController()
 ) {
+
+    var uiState=viewModel.parqueUIState
+
     Scaffold(
         topBar = { AppTopBar(navController = navController) },  // Aquí pasamos el navController
         bottomBar = { AppBottomBar(navController = navController) },
@@ -120,7 +123,7 @@ fun ParquesApps(
         ) {
             composable(PantallasParque.PantallaJson.route) {
                 // Usar viewModel() para obtener la instancia del ViewModel
-                PantallaJson(viewModel = viewModel)  // Ahora el ViewModel se obtiene directamente
+                PantallaJson(appUiState = uiState)  // Ahora el ViewModel se obtiene directamente
             }
             composable(PantallasParque.PantallaRoom.route) {
                 PantallaRoom(viewModel = viewModel)
